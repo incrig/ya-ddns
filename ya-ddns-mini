@@ -6,7 +6,6 @@ SUBDOMAIN='sub'
 TTL='60'
 RECORD_ID='000000'
 TOKEN='KAKOYTOOCHENDLINNYYNABORBUKAV'
-
 new_ip=$(curl -s "$GET_IP_URL")
 echo "Currently used IP: $new_ip"
 
@@ -21,11 +20,11 @@ if [[ $1 == "add" ]]; then
         exit
 fi
 
-if [[ "$ip" != $(< $LAST_IP) ]]; then
+if [[ "$new_ip" != $(< $LAST_IP) ]]; then
         post=$(curl -H "PddToken: $TOKEN" -d "domain=$DOMAIN&record_id=$RECORD_ID&subdomain=$SUBDOMAIN&ttl=$TTL&content=$new_ip" "https://pddimp.yandex.ru/api2/admin/dns/edit")
         answer=$(echo "$post" | grep -i "\"success\": \"ok\"")
         if [[ $answer != "" ]]; then
-                echo -e "IP Updated"
+                echo -e "IP Updated. New IP: $new_ip"
                 echo "$new_ip" > "$LAST_IP"
         else
                 echo -e "$post"
