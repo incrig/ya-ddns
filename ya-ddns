@@ -1,16 +1,15 @@
 #!/bin/bash
-LAST_IP_FILE='ip.txt'						# Файл, в котором храниться последний прописанный IP
-GET_IP_URL='https://myexternalip.com/raw'	# адрес, сообщающий нам IP
-DOMAIN='tvoy.domen'							# Домен, записи DNS которого я редактирую 
-SUBDOMAIN='poddomen'						# Поддомен, для которого меняем IP
-TTL='14400'									# Время жизни DNS-записи в секундах.
+LAST_IP='ip'						# Файл, в котором храниться последний прописанный IP
+GET_IP_URL='ifconfig.co'	# адрес, сообщающий нам IP
+DOMAIN='example.com'							# Домен, записи DNS которого я редактирую 
+SUBDOMAIN='subdoamin'						# Поддомен, для которого меняем IP
+TTL='60'									# Время жизни DNS-записи в секундах.
 RECORD_ID='000000'							# Номер записи будет известен после добавления первой записи с помощью этого скрипта.
 TOKEN='KAKOYTOOCHENDLINNYYNABORBUKAV'		# Токен от яндекса
 # Токен получить у Яндекса: https://pddimp.yandex.ru/api2/admin/get_token
 
-ip=$(curl "$GET_IP_URL")
-echo "$ip"
-last_ip=$(cat "$LAST_IP_FILE")
+new_ip=$(curl -s "$GET_IP_URL")
+echo "Currently used IP: $new_ip"
 
 # Для начала надо добавить запись на сервер. Можно сделать это
 # и через веб-морду яндекса, но тогда сложнее узнать нужные
@@ -32,13 +31,13 @@ fi
 # После того, как запись добавлена и необходимые параметры
 # заменены в этом скрипте, достаточно просто запустить скрипт
 # без параметров.
-if [[ "$ip" != "$last_ip" ]]; then
+if [[ "$ip" != $(< $LAST_IP) ]]; then
 	post=$(curl -H "PddToken: $TOKEN" -d "domain=$DOMAIN&record_id=$RECORD_ID&subdomain=$SUBDOMAIN&ttl=$TTL&content=$ip" "https://pddimp.yandex.ru/api2/admin/dns/edit")
 	answer=$(echo "$post" | grep -i "\"success\": \"ok\"")
 	if [[ $answer != "" ]]; then
 		echo -e "\\e[32mGOOD!\\e[0m"
 		# Если видим GOOD!, значит запись изменена. Запишем IP в файл.
-		echo "$ip" > "$last_ip"
+		echo "$ip" > "$LAST_IP"
 	else
 		echo -e "\\e[33m$post\\e[0m"
 		# Если не видим GOOD!, значит запись не удалось изменить, и IP не обновлён.
