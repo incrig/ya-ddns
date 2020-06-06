@@ -1,7 +1,7 @@
 #!/bin/bash
 LAST_IP='last_ip'
 GET_IP_URL='ifconfig.co'
-DOMAIN='example.com'
+DOMAIN='example.lv'
 SUBDOMAIN='sub'
 TTL='60'
 RECORD_ID='000000'
@@ -11,29 +11,25 @@ new_ip=$(curl -s "$GET_IP_URL")
 echo "Currently used IP: $new_ip"
 
 if [[ $1 == "add" ]]; then
-	post=$(curl -H "PddToken: $TOKEN" \
-		-d "domain=$DOMAIN&type=A&subdomain=$SUBDOMAIN&ttl=$TTL&content=$ip" \
-		"https://pddimp.yandex.ru/api2/admin/dns/add")
-	answer=$(echo "$post" | grep -i "\"success\": \"ok\"")
-	if [[ $answer != "" ]]; then
-		echo -e "GOOD! Added new record!\\n$post"
-	else
-		echo -e "$post"
-	fi
-	exit
+        post=$(curl -H "PddToken: $TOKEN" -d "domain=$DOMAIN&type=A&subdomain=$SUBDOMAIN&ttl=$TTL&content=$new_ip" "https://pddimp.yandex.ru/api2/admin/dns/add")
+        answer=$(echo "$post" | grep -i "\"success\": \"ok\"")
+        if [[ $answer != "" ]]; then
+                echo -e "GOOD! Added new record!\\n$post"
+        else
+                echo -e "$post"
+        fi
+        exit
 fi
 
 if [[ "$ip" != $(< $LAST_IP) ]]; then
-	post=$(curl -H "PddToken: $TOKEN" \
-		-d "domain=$DOMAIN&record_id=$RECORD_ID&subdomain=$SUBDOMAIN&ttl=$TTL&content=$ip" \
-		"https://pddimp.yandex.ru/api2/admin/dns/edit")
-	answer=$(echo "$post" | grep -i "\"success\": \"ok\"")
-	if [[ $answer != "" ]]; then
-		echo -e "IP Updated"
-		echo "$ip" > "$LAST_IP"
-	else
-		echo -e "$post"
-	fi
+        post=$(curl -H "PddToken: $TOKEN" -d "domain=$DOMAIN&record_id=$RECORD_ID&subdomain=$SUBDOMAIN&ttl=$TTL&content=$new_ip" "https://pddimp.yandex.ru/api2/admin/dns/edit")
+        answer=$(echo "$post" | grep -i "\"success\": \"ok\"")
+        if [[ $answer != "" ]]; then
+                echo -e "IP Updated"
+                echo "$new_ip" > "$LAST_IP"
+        else
+                echo -e "$post"
+        fi
 else
-	echo -e "Same IP"
+        echo -e "Same IP"
 fi
